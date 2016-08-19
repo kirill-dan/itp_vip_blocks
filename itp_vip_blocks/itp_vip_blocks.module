@@ -189,7 +189,7 @@ function itp_vip_blocks_create_vip_node($nid) {
 
   $image_uri = $node->field_image[LANGUAGE_NONE][0]['uri'];
   $image = theme('image_style', array(
-      'style_name' => 'my_photo_style_for_home',
+      'style_name' => 'thumbnail',
       'path' => $image_uri,
       'attributes' => array()
     )
@@ -198,7 +198,7 @@ function itp_vip_blocks_create_vip_node($nid) {
   $node_markup .= '<div class = "image">' . l($image, 'node/' . $nid, array('html' => TRUE)) . '</div>';
 
   // BEGIN show some fields _______________________________________________________________________________
-  $node_markup .= '<div class = "region-city">' . $node_view['field_region_city'][0]['#markup'] . '</div>';
+/*  $node_markup .= '<div class = "region-city">' . $node_view['field_region_city'][0]['#markup'] . '</div>';
 
   if (isset($node_view['field_rent_sale_residential'][0]['#markup'])) {
     $node_markup .= '<div class="rent-sale-block">
@@ -213,7 +213,7 @@ function itp_vip_blocks_create_vip_node($nid) {
 
   $node_markup .= '<div class="block-price">
                    <div class = "price-text">' . t('Price:') . '</div>
-                   <div class = "price">' . $node_view['field_price'][0]['#markup'] . '</div></div>';
+                   <div class = "price">' . $node_view['field_price'][0]['#markup'] . '</div></div>';*/
 
   // END show some fields _______________________________________________________________________________
 
