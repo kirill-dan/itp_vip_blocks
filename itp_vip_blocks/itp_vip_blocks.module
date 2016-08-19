@@ -1,0 +1,223 @@
+<?php
+
+/**
+ * Module for create payment VIP Blocks via different payment processors
+ * Developer: Danilevsky Kirill k.danilevsky@gmail.com
+ * web: http://best-house.org
+ */
+
+/**
+ * Implementation of hook_help.
+ *
+ */
+function itp_vip_blocks_help($patch, $arg) {
+  switch ($patch) {
+    case 'admin/help#itp-vip_blocks' :
+      return t('Module for create payment VIP Blocks via different payment processors. Developer Danilevsky Kirill http://best-house.org');
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function itp_vip_blocks_menu() {
+  $items = array();
+
+  // Callback for get content from DM dynamic method and comeback to page. This is need for cache pages.
+  $items['ajax-dynamic-get-vip-block'] = array(
+    'delivery callback' => 'ajax_deliver',
+    'page callback' => 'itp_vip_blocks_ajax_get_vip_block',
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_init().
+ */
+function itp_vip_blocks_init() {
+
+  // Include css file.
+  drupal_add_css(drupal_get_path('module', 'itp_vip_blocks') . '/css/itp_vip_blocks.css');
+
+  // Include JS for dynamic content.
+  drupal_add_js(drupal_get_path('module', 'itp_vip_blocks') . "/js/itp_vip_blocks_ajax_get_vip_block.js");
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function itp_vip_blocks_block_info() {
+  $block = array();
+
+  // Get all active paid payments.
+  $payments = ItpPaymentController::GetExistAllPaidPayment();
+  // If exist payments then create block for every content type.
+  if (!empty($payments)) {
+    foreach ($payments as $payment) {
+      $nid = $payment->nid;
+      $node = node_load($nid);
+      $node_type = $node->type;
+      $block['vip_block_' . $node_type] = array(
+        'info' => t('Vip block @type', array('@type' => $node_type)),
+        'weight' => 1,
+        'cache' => DRUPAL_NO_CACHE,
+      );
+    }
+  }
+  return $block;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function itp_vip_blocks_block_view($delta = '') {
+  $block = array();
+
+  // Get all active paid payments.
+  $payments = ItpPaymentController::GetExistAllPaidPayment();
+  // If exist payments create block for every content type.
+  if (!empty($payments)) {
+    foreach ($payments as $payment) {
+      $nid = $payment->nid;
+      $node = node_load($nid);
+      $node_type = $node->type;
+      // Add node to block with ajax callback.
+      if ('vip_block_' . $node_type == $delta) {
+        $block['content'] = '<div class="itp-vip-block-ajax" data-type="' . $node_type . '"></div>';
+      }
+    }
+  }
+
+  return $block;
+}
+
+/**
+ * Ajax callback for output block with VIP nodes.
+ */
+function itp_vip_blocks_ajax_get_vip_block() {
+
+  if (isset($_POST['type'])) {
+    // Get all data from page where exist ajax class = ajax-dynamic-get-data
+    $type = $_POST['type'][0]['type'];
+    if (!empty($type)) {
+
+      $content = '';
+      // Get all active paid payments.
+      $payments = ItpPaymentController::GetExistAllPaidPayment();
+
+      // If exist payments create content for block.
+      if (!empty($payments)) {
+        foreach ($payments as $payment) {
+          $nid = $payment->nid;
+          $node = node_load($nid);
+          $node_type = $node->type;
+          // Add node to block with name 'vip_block_' . $node_type.
+          if ($node_type == $type) {
+            $nids[$type][] = $nid;
+          }
+        }
+        // If exist vip nodes for this content type.
+        if (isset($nids)) {
+          // Get 5 random nodes if nodes > 5 items.
+          $content = '<div class="itp-vip-block">' . itp_vip_blocks_get_random_node($nids, $type) . '</div>';
+        }
+      }
+
+      $content = array("content" => $content);
+      return json_encode($content);
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Create random markup with 5 nodes if nodes > 5 items.
+ *
+ * @param $nids array with node nid
+ * @param $type string key for array
+ *
+ * @return string nodes markup
+ */
+function itp_vip_blocks_get_random_node($nids, $type) {
+  $vip_nodes = '<div class="itp-vip-block-name">' . t('VIP offers') . '</div>';
+  // If nodes > 5 items.
+  if (count($nids[$type]) > 5) {
+    // Get 5 random keys.
+    $nids_five_random = array_rand($nids[$type], 5);
+    $nids_five = array();
+    // Make new array with 5 nids.
+    foreach ($nids_five_random as $key) {
+      $nids_five[] = $nids[$type][$key];
+    }
+    // Mix array.
+    shuffle($nids_five);
+    // Get all nid.
+    foreach ($nids_five as $nid) {
+      // Create vip node.
+      $vip_nodes .= itp_vip_blocks_create_vip_node($nid);
+    }
+  }
+  else {
+    $nids_five = $nids[$type];
+    // Mix array.
+    shuffle($nids_five);
+    // Get all nid.
+    foreach ($nids_five as $nid) {
+      // Create vip node.
+      $vip_nodes .= itp_vip_blocks_create_vip_node($nid);
+    }
+  }
+
+  return $vip_nodes;
+}
+
+/**
+ * Create VIP node markup.
+ *
+ * @param $nid integer node nid
+ *
+ * @return string node markup
+ */
+function itp_vip_blocks_create_vip_node($nid) {
+  $node_markup = '<div class="itp-vip-node">';
+  $node = node_load($nid);
+  $node_view = node_view($node);
+
+  $image_uri = $node->field_image[LANGUAGE_NONE][0]['uri'];
+  $image = theme('image_style', array(
+      'style_name' => 'my_photo_style_for_home',
+      'path' => $image_uri,
+      'attributes' => array()
+    )
+  );
+
+  $node_markup .= '<div class = "image">' . l($image, 'node/' . $nid, array('html' => TRUE)) . '</div>';
+
+  // BEGIN show some fields _______________________________________________________________________________
+  $node_markup .= '<div class = "region-city">' . $node_view['field_region_city'][0]['#markup'] . '</div>';
+
+  if (isset($node_view['field_rent_sale_residential'][0]['#markup'])) {
+    $node_markup .= '<div class="rent-sale-block">
+                     <div class = "rent-sale-text">' . t('Rent/Sale:') . '</div>
+                     <div class = "rent-sale">' . $node_view['field_rent_sale_residential'][0]['#markup'] . '</div></div>';
+  }
+  elseif (isset($node_view['field_rent_sale_commercial'][0]['#markup'])) {
+    $node_markup .= '<div class="rent-sale-block">
+                     <div class = "rent-sale-text">' . t('Rent/Sale:') . '</div>
+                     <div class = "rent-sale">' . $node_view['field_rent_sale_commercial'][0]['#markup'] . '</div></div>';
+  }
+
+  $node_markup .= '<div class="block-price">
+                   <div class = "price-text">' . t('Price:') . '</div>
+                   <div class = "price">' . $node_view['field_price'][0]['#markup'] . '</div></div>';
+
+  // END show some fields _______________________________________________________________________________
+
+  $node_markup .= '</div>';
+
+  return $node_markup;
+}

@@ -1,0 +1,6 @@
+name = ITP VIP Blocks
+description = Module create payment VIP blocks (Danilevsky Kirill, k.danilevsky@gmail.com, web: http://best-house.org)
+core = 7.x
+version = 1.1
+package = ITP VIP Blocks
+dependencies[] = itp_payment

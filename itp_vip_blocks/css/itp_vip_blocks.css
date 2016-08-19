@@ -1,0 +1,65 @@
+/*---------------------------------------- VIP Blocks -------------------------------*/
+
+.itp-vip-block {
+    margin-bottom: 30px;
+    border: 2px solid #ff898c;
+    box-shadow: 0px 3px 6px 0px #fc6c63;
+    width: 96%;
+    margin-left: 20px;
+}
+
+.itp-vip-block .itp-vip-block-name {
+    color: #F00000;
+    font-size: 24px;
+    font-weight: bold;
+    margin-left: 15px;
+}
+
+.itp-vip-node {
+    display: inline-block;
+    vertical-align: top;
+    min-width: 200px;
+    min-height: 225px;
+    position: relative;
+    margin-left: 17px;
+    margin-right: 12px;
+}
+
+.itp-vip-node .region-city {
+    color: #008021;
+    max-width: 200px;
+    line-height: 15px;
+}
+
+.itp-vip-node .rent-sale-block {
+    position: absolute;
+    bottom: 25px;
+    width: 200px;
+}
+
+.itp-vip-node .rent-sale-text {
+    font-weight: bold;
+    display: inline;
+    padding-right: 5px;
+}
+
+.itp-vip-node  .rent-sale {
+    color: #C00;
+    display: inline;
+}
+
+.itp-vip-node .block-price {
+    position: absolute;
+    bottom: 5px;
+    width: 200px;
+}
+
+.itp-vip-node .price-text {
+    font-weight: bold;
+    float: left;
+    padding-right: 5px;
+}
+
+.itp-vip-node .price {
+    color: #F00;
+}
